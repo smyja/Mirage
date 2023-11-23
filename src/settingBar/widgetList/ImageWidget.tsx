@@ -124,35 +124,39 @@ const ImageWidget: React.FC = () => {
             ].join(" ")}
             onClick={uploadImage}
           >
-            upload
+            Upload
           </Button>
         </h6>
       </Row>
-      <Row xs={2}>
-        <Form>
-          <Form.Group controlId="textPrompt">
-            <Form.Control
-              type="text"
-              placeholder="Enter text prompt"
-              value={textPrompt}
-              onChange={handleTextChange}
-            />
-          </Form.Group>
-          <Button
-            variant="primary"
-            onClick={generateImage}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+      <Form>
+        <Form.Group controlId="textPrompt">
+          <Form.Control
+            type="text"
+            placeholder="Enter text prompt"
+            value={textPrompt}
+            onChange={handleTextChange}
+            style={{ marginBottom: 10 }} 
+          />
+        </Form.Group>
+        <Button
+          variant="primary"
+          onClick={generateImage}
+          disabled={loading}
+          size="sm"
+          style={{ marginBottom: 10 }} 
+        >
+          {loading ? (
+            <>
+              <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
                 Generating Image...
-              </>
-            ) : (
-              "Generate Image"
-            )}
-          </Button>
-        </Form>
+            </>
+          ) : (
+            "Generate"
+          )}
+        </Button>
+      </Form>
+      <Row xs={2}>
+       
         {imageAssetList.map((_data) => (
           <ImageThumbnail
             key={`image-thumbnail-${_data.id}`}
