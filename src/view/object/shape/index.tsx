@@ -60,7 +60,7 @@ const ShapeItem: React.FC<ShapeItemProps> = ({ data, e, transformer, onSelect })
         fill={attrs.fill ?? "#000000"}
         stroke={attrs.stroke ?? null}
         strokeWidth={attrs.stroke ? 5 : undefined}
-        borderRadius={10}
+        cornerRadius={0.5}
         opacity={attrs.opacity ?? 1}
         rotation={attrs.rotation ?? 0}
         draggable

@@ -113,16 +113,20 @@ const ImageWidget: React.FC = () => {
         <h6>
           {getTranslation("widget", "image", "name")}
           <Button
+            
+            style={{background:"green",padding:5}}
+            size="sm"
             className={[
-              colorStyles.transparentDarkColorTheme,
+            
               borderStyles.none,
               displayStyles["inline-block"],
-              sizeStyles.width25,
-              spaceStyles.p0,
+           
+              spaceStyles.p3,
               spaceStyles.ml1rem,
               alignStyles["text-left"],
             ].join(" ")}
             onClick={uploadImage}
+        
           >
             Upload
           </Button>

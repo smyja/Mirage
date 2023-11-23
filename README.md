@@ -1,7 +1,7 @@
 # A.I Image Editor
 
 
-## How to Run Project
+## Getting Started
 
 ```bash
 npm i
