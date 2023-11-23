@@ -1,6 +1,5 @@
-# React Image Editor
+# A.I Image Editor
 
-![Live Screenshot](https://github.com/swimmingkiim/react-image-editor/blob/main/screenshots/screenshot-1.png?raw=true)
 
 ## How to Run Project
 
@@ -72,7 +71,3 @@ npm run serve
     - change color
     - text align
     - remove text
-
-
-# Support Me!
-<a href="https://www.buymeacoffee.com/swimmingkiim" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/arial-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
