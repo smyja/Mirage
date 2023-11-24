@@ -220,7 +220,7 @@ const TextItem: React.FC<TextItemProps> = ({ data, e, transformer, onSelect }) =
       ref={textRef}
       text={attrs.text}
       fontFamily={attrs.fontFamily}
-      fontSize={attrs.fontSize}
+      fontSize={50}
       onClick={onClickText}
       name="label-target"
       data-item-type="text"
@@ -231,6 +231,7 @@ const TextItem: React.FC<TextItemProps> = ({ data, e, transformer, onSelect }) =
       align={attrs.align ?? "center"}
       verticalAlign={attrs.verticalAlign ?? "middel"}
       width={attrs.width}
+      wrap="word" // Enable text wrapping
       height={attrs.height}
       scaleX={attrs.scaleX}
       scaleY={attrs.scaleY}
