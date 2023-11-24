@@ -24,11 +24,23 @@
     "name": "Text"
   },
   {
+    "id": "line",
+    "name": "Line"
+  },
+  {
+    "id": "gencopy",
+    "name": "Generate Copy"
+  },
+  {
     "id": "icon",
-    "name": "Icon"
+    "name": "Iconertryr"
   },
   {
     "id": "export",
     "name": "Export"
+  },
+  {
+    "id": "Fill",
+    "name": "AutoFill"
   }
 ]

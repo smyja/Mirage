@@ -272,6 +272,14 @@
     "id": "text",
     "name": "Text"
   },
+  "line": {
+    "id": "line",
+    "name": "Line"
+  },
+  "gencopy": {
+    "id": "gencopy",
+    "name": "Generate Copy"
+  },
   "icon": {
     "id": "icon",
     "name": "Icon",

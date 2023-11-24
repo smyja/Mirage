@@ -14,6 +14,7 @@ import useStage from "../hook/useStage";
 import ShapeWidget from "./widgetList/ShapeWidget";
 import IconWidget from "./widgetList/IconWidget";
 import LineWidget from "./widgetList/LineWidget";
+import GenCopyWidget from "./widgetList/GenCopyWidget";
 
 export type SettingBarProps = {
   selectedItems: Node<NodeConfig>[];
@@ -29,6 +30,7 @@ const Widgets = {
   shape: (data: WidgetKind & SettingBarProps) => <ShapeWidget />,
   text: (data: WidgetKind & SettingBarProps) => <TextWidget />,
   line: (data: WidgetKind & SettingBarProps) => <LineWidget />,
+  gencopy: (data: WidgetKind & SettingBarProps) => <GenCopyWidget data={data}/>,
   icon: (data: WidgetKind & SettingBarProps) => <IconWidget />,
   export: (data: WidgetKind & SettingBarProps) => <ExportWidget data={data} />,
 };
