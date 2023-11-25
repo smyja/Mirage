@@ -280,6 +280,10 @@
     "id": "gencopy",
     "name": "Generate Copy"
   },
+  "image2image": {
+    "id": "image2image",
+    "name": "Image to Image"
+  },
   "icon": {
     "id": "icon",
     "name": "Icon",

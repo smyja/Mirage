@@ -33,14 +33,14 @@
   },
   {
     "id": "icon",
-    "name": "Iconertryr"
+    "name": "Icon"
   },
   {
     "id": "export",
     "name": "Export"
   },
   {
-    "id": "Fill",
-    "name": "AutoFill"
+    "id": "image2image",
+    "name": "Image to Image"
   }
 ]

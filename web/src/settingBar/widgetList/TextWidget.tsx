@@ -44,7 +44,7 @@ const TextThumbnail: React.FC<{ maxPx: number; data: TextItemKind }> = ({ data, 
           width: "100%",
           fontFamily: data.fontFamily,
           fontSize: data.fontSize - 10,
-          height:400,
+      
           textAlign: "center",
         }}>
         {data.text}
