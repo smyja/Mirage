@@ -1,4 +1,4 @@
-from fastapi import HTTPException,APIRouter
+from fastapi import HTTPException,APIRouter,File, UploadFile, Form
 from fastapi.responses import FileResponse
 from typing import Dict
 import base64
@@ -7,10 +7,13 @@ import s3fs
 import requests
 from dotenv import load_dotenv
 from datetime import datetime
+import io
+from PIL import Image
 
 router = APIRouter()
 load_dotenv()
 engine_id = "stable-diffusion-v1-6"
+image_engine_id="stable-diffusion-xl-1024-v1-0"
 api_host = os.getenv('API_HOST', 'https://api.stability.ai')
 api_key = os.environ["STABILITY_API_KEY"]
 aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
@@ -72,10 +75,87 @@ def save_image(prompt,base64_data):
 
     return f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{image_path}"
 
-@router.get("/images/{image_path}")
-async def get_image(image_path: str):
-    image_full_path = os.path.join("./out", image_path)
-    if not os.path.exists(image_full_path):
-        raise HTTPException(status_code=404, detail="Image not found")
-    
-    return FileResponse(image_full_path, media_type="image/png")
+
+
+def save_image_from_file(binary_data, prompt):
+    base64_data = base64.b64encode(binary_data).decode('utf-8')
+
+    data = {
+        'image_strength': '0.35',
+        'init_image_mode': 'IMAGE_STRENGTH',
+        'text_prompts[0][text]': prompt,
+        'text_prompts[0][weight]': '1',
+        'cfg_scale': '7',
+        'clip_guidance_preset': 'FAST_BLUE',
+        'sampler': 'K_DPM_2_ANCESTRAL',
+        'samples': '3',
+        'steps': '30',
+    }
+
+    files = {
+        'init_image': (None, binary_data, 'image/jpeg'),
+    }
+
+    headers = {'Authorization': f'Bearer {api_key}'}
+
+    response = requests.post(
+        f'{api_host}/v1/generation/{image_engine_id}/image-to-image',
+        files=files,
+        data=data,
+        headers=headers
+    )
+
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=f"Failed to fetch image. Status code: {response.status_code}")
+
+    decoded_content = base64.b64decode(response.json()['artifacts'][0]['base64'])
+
+    cleaned_prompt = prompt.replace(" ", "_")
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    output_file_path = f"{cleaned_prompt}_{timestamp}.png"
+
+    s3_path = f"{bucket_name}/{output_file_path}"
+
+    with fs.open(s3_path, "wb") as f:
+        f.write(decoded_content)
+
+    return f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
+
+
+@router.post("/generate_image_from_file")
+async def generate_image_from_file(
+        prompt: str = Form(...),
+        image_file: UploadFile = File(...),
+):
+    # Read the uploaded image file
+    binary_data = image_file.file.read()
+
+    # Resize the image if needed
+    binary_data_resized = resize_image(binary_data)
+
+    # Call the function to fetch image and save
+    output_file_path = save_image_from_file(binary_data_resized, prompt)
+
+    return {"image_url": output_file_path}
+
+
+def resize_image(binary_data):
+    # Create a PIL Image object from the binary data
+    image = Image.open(io.BytesIO(binary_data))
+
+    # Define the allowed dimensions
+    allowed_dimensions = [(1024, 1024), (1152, 896), (1216, 832), (1344, 768), (1536, 640),
+                           (640, 1536), (768, 1344), (832, 1216), (896, 1152)]
+
+    # Check if the image dimensions are allowed, resize if needed
+    if (image.width, image.height) not in allowed_dimensions:
+        new_dimensions = allowed_dimensions[0]  # Choose the first allowed dimensions
+        image = image.resize(new_dimensions)
+
+    # Save the resized image to binary data
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG")
+    binary_data_resized = buffered.getvalue()
+
+    return binary_data_resized
