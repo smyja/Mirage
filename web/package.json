@@ -1,11 +1,11 @@
 {
-  "name": "react-image-editor",
+  "name": "ocado",
   "version": "0.1.0",
-  "description": "React + Konva / image editor / like Figma or Canva",
-  "homepage": "https://swimmingkiim.github.io/react-image-editor",
-  "bugs": "https://github.com/swimmingkiim/react-image-editor/issues",
-  "author": "swimmingkiim <swimmingkiim@gmail.com>",
-  "repository": "https://github.com/swimmingkiim/react-image-editor.git",
+  "description": "AI Image Editor",
+  "homepage": "",
+  "bugs": "https://github.com/smyja/ocado/issues",
+  "author": "",
+  "repository": "",
   "license": "MIT",
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.2",
