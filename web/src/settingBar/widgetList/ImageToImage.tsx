@@ -4,59 +4,74 @@ import Konva from "konva";
 import { Node, NodeConfig } from "konva/lib/Node";
 import { WidgetKind } from "../Widget";
 import { SettingBarProps } from "..";
+import useItem from "../../hook/useItem";
 
-export type GenCopyKind = {
+export type Image2ImageKind = {
   "data-item-type": string;
   id: string;
   icon: string;
   selectedItems: Node<NodeConfig>[];
 };
 
-type GenCopyWidgetProps = {
+type Image2ImageWidgetProps = {
   data: WidgetKind & SettingBarProps
 };
 
-const GenCopyWidget: React.FC<GenCopyWidgetProps> = ({ data }) => {
+const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
   const [textPrompt, setTextPrompt] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
+  const { updateItem } = useItem();
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTextPrompt(e.target.value);
   };
 
-  const generateProductCopy = async () => {
+  const generateImagefromImage = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://0.0.0.0/create_copy", {
+      const formData = new FormData();
+      formData.append("prompt", textPrompt);
+  
+      // Get the selected image
+      const selectedImageItem = data.selectedItems.find(
+        (item: Node<NodeConfig>) => item.attrs["data-item-type"] === "image"
+      ) as Konva.Image;
+  
+      if (selectedImageItem && selectedImageItem.image()) {
+        const imageElement = selectedImageItem.image() as HTMLImageElement;
+        const response = await fetch(imageElement.src);
+        const blob = await response.blob();
+  
+        // Append the Blob to the FormData
+        formData.append("image_file", blob, "image.png");
+      }
+  
+      const response = await fetch("http://0.0.0.0/generate_image_from_file", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: textPrompt }),
+        body: formData,
       });
-
+  
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-
+  
       const api_response = await response.json();
-      console.log(api_response.status);
-      if (api_response.status === "success" && data.selectedItems) {
-        const selectedTextItem = data.selectedItems.find(
-          (item: Node<NodeConfig>) => item.attrs["data-item-type"] === "text"
-        ) as Konva.Text;
-
-        if (selectedTextItem) {
-          selectedTextItem.text(api_response.response);
-          
-          // Adjust the width of the text node to fit the new text
-          const textWidth = selectedTextItem.getTextWidth();
-          selectedTextItem.height(500);
-          selectedTextItem.width(400);
-          selectedTextItem.wrap("char");
-          selectedTextItem.getLayer()?.batchDraw();
+      console.log(api_response.image_url);
+      if (api_response && data.selectedItems) {
+        // Update the selected image with the new image from the API response
+        const selectedImageItem = data.selectedItems.find(
+          (item: Node<NodeConfig>) => item.attrs["data-item-type"] === "image"
+        ) as Konva.Image;
+  
+        if (selectedImageItem) {
+          const newImage = new Image();
+          newImage.onload = () => {
+            selectedImageItem.image(newImage);
+            selectedImageItem.getLayer()?.batchDraw();
+            updateItem(selectedImageItem.id(), () => ({ ...selectedImageItem.attrs, image: newImage }));
+          };
+          newImage.src = api_response.image_url;
         }
       }
     } catch (error: any) {
@@ -66,7 +81,6 @@ const GenCopyWidget: React.FC<GenCopyWidgetProps> = ({ data }) => {
       setIsLoading(false);
     }
   };
-
   return (
     <Form>
       <Form.Group controlId="textPrompt">
@@ -80,7 +94,7 @@ const GenCopyWidget: React.FC<GenCopyWidgetProps> = ({ data }) => {
       </Form.Group>
       <Button
         variant="primary"
-        onClick={generateProductCopy}
+        onClick={generateImagefromImage}
         size="sm"
         style={{ marginBottom: 10 }}
         disabled={isLoading}
@@ -92,4 +106,4 @@ const GenCopyWidget: React.FC<GenCopyWidgetProps> = ({ data }) => {
   );
 };
 
-export default GenCopyWidget;
+export default Image2ImageWidget;

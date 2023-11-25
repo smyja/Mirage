@@ -104,7 +104,7 @@ def save_image_from_file(binary_data, prompt):
         data=data,
         headers=headers
     )
-
+    print(response)
 
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=f"Failed to fetch image. Status code: {response.status_code}")
@@ -143,6 +143,10 @@ async def generate_image_from_file(
 def resize_image(binary_data):
     # Create a PIL Image object from the binary data
     image = Image.open(io.BytesIO(binary_data))
+
+    # Convert image to RGB if it's RGBA
+    if image.mode == 'RGBA':
+        image = image.convert('RGB')
 
     # Define the allowed dimensions
     allowed_dimensions = [(1024, 1024), (1152, 896), (1216, 832), (1344, 768), (1536, 640),
