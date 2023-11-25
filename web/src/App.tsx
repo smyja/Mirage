@@ -342,7 +342,7 @@ function App() {
       e.returnValue = "";
     });
     onCreateTab(undefined, initialStageDataList[0] as StageDataListItem);
-    initializeFileDataList(initialStageDataList);
+    
     stage.stageRef.current.setPosition({
       x: Math.max(Math.ceil(stage.stageRef.current.width() - 1280) / 2, 0),
       y: Math.max(Math.ceil(stage.stageRef.current.height() - 760) / 2, 0),
