@@ -23,10 +23,7 @@
     "id": "text",
     "name": "Text"
   },
-  {
-    "id": "line",
-    "name": "Line"
-  },
+
   {
     "id": "gencopy",
     "name": "Generate Copy"
@@ -46,5 +43,9 @@
   {
     "id": "image2image",
     "name": "Image to Image"
+  },
+  {
+    "id": "inpainting",
+    "name": "Inpainting"
   }
 ]

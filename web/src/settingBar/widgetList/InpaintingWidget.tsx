@@ -5,9 +5,6 @@ import { Node, NodeConfig } from "konva/lib/Node";
 import { WidgetKind } from "../Widget";
 import { SettingBarProps } from "..";
 import useItem from "../../hook/useItem";
-import { useDispatch } from "react-redux";
-import { stageDataAction } from "../../redux/currentStageData";
-
 
 export type Image2ImageKind = {
   "data-item-type": string;
@@ -28,7 +25,7 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTextPrompt(e.target.value);
   };
-  const dispatch = useDispatch();
+
   const generateImagefromImage = async () => {
     setIsLoading(true);
     setError(null);
@@ -72,16 +69,9 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
           newImage.onload = () => {
             selectedImageItem.image(newImage);
             selectedImageItem.getLayer()?.batchDraw();
-           
-            dispatch(stageDataAction.updateItem({
-              id: selectedImageItem.id(),
-              attrs: { ...selectedImageItem.attrs, image: newImage,src: api_response.image_url },
-              className: selectedImageItem.className,
-            })); 
-             
+            updateItem(selectedImageItem.id(), () => ({ ...selectedImageItem.attrs, image: newImage }));
           };
-
-          newImage.src = api_response.image_url;     
+          newImage.src = api_response.image_url;
         }
       }
     } catch (error: any) {

@@ -37,9 +37,6 @@ const GenCopyWidget: React.FC<GenCopyWidgetProps> = ({ data }) => {
         body: JSON.stringify({ message: textPrompt }),
       });
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
 
       const api_response = await response.json();
       console.log(api_response.status);
