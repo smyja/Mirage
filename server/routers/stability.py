@@ -9,9 +9,13 @@ from dotenv import load_dotenv
 from datetime import datetime
 import io
 from PIL import Image
+import replicate
+from torchvision.transforms import GaussianBlur
 
 router = APIRouter()
 load_dotenv()
+REPLICATE_API_TOKEN= os.environ["REPLICATE_API_TOKEN"]
+replicate.Client(api_token=REPLICATE_API_TOKEN)
 engine_id = "stable-diffusion-v1-6"
 image_engine_id="stable-diffusion-xl-1024-v1-0"
 api_host = os.getenv('API_HOST', 'https://api.stability.ai')
@@ -163,3 +167,43 @@ def resize_image(binary_data):
     binary_data_resized = buffered.getvalue()
 
     return binary_data_resized
+
+@router.post("/generate_mask")
+async def generate_mask(
+    mask_prompt: str = Form(...),
+    negative_mask_prompt: str = Form(...),
+    image_file: UploadFile = File(...),
+):
+    # Assuming you want to save the uploaded image to S3
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    output_file_path = f"mask_{timestamp}.png"
+
+    # Read the content of the uploaded file
+    decoded_content = await image_file.read()
+
+    # Save the content to S3
+    s3_path = f"{bucket_name}/{output_file_path}"
+    with fs.open(s3_path, "wb") as f:
+        f.write(decoded_content)
+
+    # Generate the URL for the mask
+    mask_url = f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
+
+    # Run the replicate logic with the generated mask URL
+    output = replicate.run(
+        "schananas/grounded_sam:ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
+        input={
+            "image": mask_url,
+            "mask_prompt": mask_prompt,
+            "adjustment_factor": -25,  # Assuming you want to set an adjustment factor
+            "negative_mask_prompt": negative_mask_prompt,  # Use the provided negative_mask_prompt
+        }
+    )
+
+    # Find the inverted mask URL in the output
+    inverted_mask_url = next((image for image in output if "inverted_mask" in image), None)
+
+    if inverted_mask_url is None:
+        raise HTTPException(status_code=500, detail="Inverted mask not found in the replicate output.")
+
+    return {"inverted_mask_url": inverted_mask_url}
