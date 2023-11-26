@@ -3,7 +3,6 @@ import { StageData } from "../redux/currentStageData";
 import useHotkeyFunc from "./useHotkeyFunc";
 import useItem from "./useItem";
 import useModal from "./useModal";
-import useRemoveImageBackground from "./useRemoveImageBackground";
 import useSelection from "./useSelection";
 import useStage from "./useStage";
 import useTransformer from "./useTransformer";
@@ -19,31 +18,31 @@ const useTool = (
 ) => {
   const { updateItem } = useItem();
   const hotkeyFunc = useHotkeyFunc();
-  const { autoRemoveBackground } = useRemoveImageBackground();
+  // const { autoRemoveBackground } = useRemoveImageBackground();
   const onClickHotkeyButton = () => {
     modal.openModal();
   };
 
-  const removeBackground = (selectedItems: ReturnType<typeof useSelection>["selectedItems"]) => {
-    if (selectedItems.length === 1 && selectedItems[0].attrs["data-item-type"] === "image") {
-      console.log("in");
-      const originalImage = new Image();
-      originalImage.onload = () => {
-        console.log("load");
-        originalImage.width = attrs.width;
-        originalImage.height = attrs.height;
-        autoRemoveBackground(originalImage).then((base64: string) => {
-          updateItem(selectedItems[0].id(), (attrs) => ({
-            ...attrs,
-            src: base64,
-          }));
-        });
-      };
-      const { attrs } = selectedItems[0];
-      const source = attrs.image.src;
-      originalImage.src = source;
-    }
-  };
+  // const removeBackground = (selectedItems: ReturnType<typeof useSelection>["selectedItems"]) => {
+  //   if (selectedItems.length === 1 && selectedItems[0].attrs["data-item-type"] === "image") {
+  //     console.log("in");
+  //     const originalImage = new Image();
+  //     originalImage.onload = () => {
+  //       console.log("load");
+  //       originalImage.width = attrs.width;
+  //       originalImage.height = attrs.height;
+  //       autoRemoveBackground(originalImage).then((base64: string) => {
+  //         updateItem(selectedItems[0].id(), (attrs) => ({
+  //           ...attrs,
+  //           src: base64,
+  //         }));
+  //       });
+  //     };
+  //     const { attrs } = selectedItems[0];
+  //     const source = attrs.image.src;
+  //     originalImage.src = source;
+  //   }
+  // };
 
   const getClickCallback = (id: string) => () => {
     console.log(id);
@@ -64,8 +63,8 @@ const useTool = (
         return hotkeyFunc.zoom(stage, -1);
       case "reset-zoom":
         return hotkeyFunc.resetZoom(stage);
-      case "remove-background":
-        return removeBackground(selectedItems);
+      // case "remove-background":
+      //   return removeBackground(selectedItems);
       case "hotkey":
         return onClickHotkeyButton();
       default:
