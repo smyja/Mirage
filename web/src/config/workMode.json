@@ -6,12 +6,6 @@
     "icon": "bounding-box"
   },
   {
-    "id": "remove-background",
-    "name": "Remove Background of Selected Image",
-    "desc": "Remove Background of Selected Image",
-    "icon": "card-image"
-  },
-  {
     "id": "flip-horizontally",
     "name": "Flip Horizontally",
     "desc": "Flip Horizontally",

@@ -75,10 +75,5 @@
     "name": "Redo",
     "keys": ["ctrl", "y"],
     "desc": ""
-  },
-  "remove-background": {
-    "name": "Remove Background of Selected Image",
-    "keys": ["ctrl", "x", "b"],
-    "desc": "Remove Background of Selected Image"
   }
 }
