@@ -284,6 +284,10 @@
     "id": "image2image",
     "name": "Image to Image"
   },
+  "maskimage":{
+    "id": "maskimage",
+    "name": "Mask Image"
+  },
   "icon": {
     "id": "icon",
     "name": "Icon",

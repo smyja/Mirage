@@ -11,6 +11,9 @@ import io
 from PIL import Image
 import replicate
 from torchvision.transforms import GaussianBlur
+import requests
+from io import BytesIO
+
 
 router = APIRouter()
 load_dotenv()
@@ -207,3 +210,4 @@ async def generate_mask(
         raise HTTPException(status_code=500, detail="Inverted mask not found in the replicate output.")
 
     return {"inverted_mask_url": inverted_mask_url}
+

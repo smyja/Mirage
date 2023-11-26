@@ -31,6 +31,10 @@
     "id": "gencopy",
     "name": "Generate Copy"
   },
+{
+    "id": "maskimage",
+    "name": "Mask Image"
+  },
   {
     "id": "icon",
     "name": "Icon"
