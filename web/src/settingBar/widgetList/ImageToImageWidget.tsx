@@ -5,39 +5,35 @@ import { Node, NodeConfig } from "konva/lib/Node";
 import { WidgetKind } from "../Widget";
 import { SettingBarProps } from "..";
 import useItem from "../../hook/useItem";
+import { useDispatch } from "react-redux";
+import { stageDataAction } from "../../redux/currentStageData";
 
-export type MaskImageKind = {
+
+export type Image2ImageKind = {
   "data-item-type": string;
   id: string;
   icon: string;
   selectedItems: Node<NodeConfig>[];
 };
 
-type MaskImageWidgetProps = {
+type Image2ImageWidgetProps = {
   data: WidgetKind & SettingBarProps
 };
 
-const MaskImageWidget: React.FC<MaskImageWidgetProps> = ({ data }) => {
-  const [maskPrompt, setMaskPrompt] = useState<string>("");
-  const [negativePrompt,setNegativePrompt]= useState<string>("");
+const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
+  const [textPrompt, setTextPrompt] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { updateItem } = useItem();
-  const handleMaskPromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMaskPrompt(e.target.value);
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTextPrompt(e.target.value);
   };
-
-  const handleNegativePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNegativePrompt(e.target.value);
-  };
-
-  const generateMaskfromImage = async () => {
+  const dispatch = useDispatch();
+  const generateImagefromImage = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const formData = new FormData();
-      formData.append("mask_prompt", maskPrompt);
-      formData.append("negative_mask_prompt",negativePrompt);
+      formData.append("prompt", textPrompt);
   
       // Get the selected image
       const selectedImageItem = data.selectedItems.find(
@@ -53,7 +49,7 @@ const MaskImageWidget: React.FC<MaskImageWidgetProps> = ({ data }) => {
         formData.append("image_file", blob, "image.png");
       }
   
-      const response = await fetch("http://0.0.0.0/generate_mask", {
+      const response = await fetch("http://0.0.0.0/generate_image_from_file", {
         method: "POST",
         body: formData,
       });
@@ -75,9 +71,16 @@ const MaskImageWidget: React.FC<MaskImageWidgetProps> = ({ data }) => {
           newImage.onload = () => {
             selectedImageItem.image(newImage);
             selectedImageItem.getLayer()?.batchDraw();
-            updateItem(selectedImageItem.id(), () => ({ ...selectedImageItem.attrs, image: newImage }));
+            console.log(selectedImageItem.id());
+            dispatch(stageDataAction.updateItem({
+              id: selectedImageItem.id(),
+              attrs: { ...selectedImageItem.attrs, image: newImage,src: api_response.image_url },
+              className: selectedImageItem.className,
+            })); 
+             
           };
-          newImage.src = api_response.inverted_mask_url;
+
+          newImage.src = api_response.image_url;     
         }
       }
     } catch (error: any) {
@@ -92,22 +95,15 @@ const MaskImageWidget: React.FC<MaskImageWidgetProps> = ({ data }) => {
       <Form.Group controlId="textPrompt">
         <Form.Control
           type="text"
-          placeholder="Enter mask prompt"
-          value={maskPrompt}
-          onChange={handleMaskPromptChange}
-          style={{ marginBottom: 10 }}
-        />
-        <Form.Control
-          type="text"
-          placeholder="Enter negative prompt"
-          value={negativePrompt}
-          onChange={handleNegativePromptChange}
+          placeholder="Enter text prompt"
+          value={textPrompt}
+          onChange={handleTextChange}
           style={{ marginBottom: 10 }}
         />
       </Form.Group>
       <Button
         variant="primary"
-        onClick={generateMaskfromImage}
+        onClick={generateImagefromImage}
         size="sm"
         style={{ marginBottom: 10 }}
         disabled={isLoading}
@@ -119,4 +115,4 @@ const MaskImageWidget: React.FC<MaskImageWidgetProps> = ({ data }) => {
   );
 };
 
-export default MaskImageWidget;
+export default Image2ImageWidget;

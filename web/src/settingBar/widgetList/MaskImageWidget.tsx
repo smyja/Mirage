@@ -8,33 +8,37 @@ import useItem from "../../hook/useItem";
 import { useDispatch } from "react-redux";
 import { stageDataAction } from "../../redux/currentStageData";
 
-
-export type Image2ImageKind = {
+export type MaskImageKind = {
   "data-item-type": string;
   id: string;
   icon: string;
   selectedItems: Node<NodeConfig>[];
 };
 
-type Image2ImageWidgetProps = {
+type MaskImageWidgetProps = {
   data: WidgetKind & SettingBarProps
 };
 
-const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
-  const [textPrompt, setTextPrompt] = useState<string>("");
+const MaskImageWidget: React.FC<MaskImageWidgetProps> = ({ data }) => {
+  const [maskPrompt, setMaskPrompt] = useState<string>("");
+  const [negativePrompt,setNegativePrompt]= useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { updateItem } = useItem();
-  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTextPrompt(e.target.value);
+  const handleMaskPromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMaskPrompt(e.target.value);
+  };
+
+  const handleNegativePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNegativePrompt(e.target.value);
   };
   const dispatch = useDispatch();
-  const generateImagefromImage = async () => {
+  const generateMaskfromImage = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const formData = new FormData();
-      formData.append("prompt", textPrompt);
+      formData.append("mask_prompt", maskPrompt);
+      formData.append("negative_mask_prompt",negativePrompt);
   
       // Get the selected image
       const selectedImageItem = data.selectedItems.find(
@@ -50,7 +54,7 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
         formData.append("image_file", blob, "image.png");
       }
   
-      const response = await fetch("http://0.0.0.0/generate_image_from_file", {
+      const response = await fetch("http://0.0.0.0/generate_mask", {
         method: "POST",
         body: formData,
       });
@@ -72,15 +76,15 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
           newImage.onload = () => {
             selectedImageItem.image(newImage);
             selectedImageItem.getLayer()?.batchDraw();
-           
+            console.log(selectedImageItem.id());
             dispatch(stageDataAction.updateItem({
               id: selectedImageItem.id(),
               attrs: { ...selectedImageItem.attrs, image: newImage,src: api_response.image_url },
               className: selectedImageItem.className,
             })); 
-             
+               
           };
-
+  
           newImage.src = api_response.image_url;     
         }
       }
@@ -96,15 +100,22 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
       <Form.Group controlId="textPrompt">
         <Form.Control
           type="text"
-          placeholder="Enter text prompt"
-          value={textPrompt}
-          onChange={handleTextChange}
+          placeholder="Enter mask prompt"
+          value={maskPrompt}
+          onChange={handleMaskPromptChange}
+          style={{ marginBottom: 10 }}
+        />
+        <Form.Control
+          type="text"
+          placeholder="Enter negative prompt"
+          value={negativePrompt}
+          onChange={handleNegativePromptChange}
           style={{ marginBottom: 10 }}
         />
       </Form.Group>
       <Button
         variant="primary"
-        onClick={generateImagefromImage}
+        onClick={generateMaskfromImage}
         size="sm"
         style={{ marginBottom: 10 }}
         disabled={isLoading}
@@ -116,4 +127,4 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
   );
 };
 
-export default Image2ImageWidget;
+export default MaskImageWidget;

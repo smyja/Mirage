@@ -288,6 +288,10 @@
     "id": "maskimage",
     "name": "Mask Image"
   },
+  "inpainting":{
+    "id": "inpainting",
+    "name": "Inpainting"
+  },
   "icon": {
     "id": "icon",
     "name": "Icon",

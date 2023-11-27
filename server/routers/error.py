@@ -112,7 +112,7 @@ def save_image_from_file(binary_data, prompt):
 def save_inpainting_from_file(binary_data,binary_data2, prompt):
 
     data = {
-        "mask_source": "MASK_IMAGE_WHITE",
+        "mask_source": "MASK_IMAGE_BLACK",
         "text_prompts[0][text]": prompt,
         "cfg_scale": 7,
         "clip_guidance_preset": "FAST_BLUE",
@@ -222,6 +222,31 @@ async def generate_image_from_file(
 
     return {"image_url": output_file_path}
 
+
+
+
+# Modify inpainting function
+@router.post("/inpainting")
+async def inpainting(
+        prompt: str = Form(...),
+        masked_image: UploadFile = File(...),
+        unmasked_image: UploadFile = File(...),
+):
+    # Read the uploaded image files
+    binary_data = masked_image.file.read()
+    binary_data2 = unmasked_image.file.read()
+
+    # Resize the images if needed
+    binary_data_resized = resize_images([binary_data])[0]
+    binary_data2_resized = resize_images([binary_data2])[0]
+
+    # Call the function to fetch image and save
+    output_file_path = save_inpainting_from_file(binary_data_resized, binary_data2_resized, prompt)
+
+    return {"image_url": output_file_path}
+
+
+
 @router.post("/generate_mask")
 async def generate_mask(
     mask_prompt: str = Form(...),
@@ -241,13 +266,13 @@ async def generate_mask(
         f.write(decoded_content)
 
     # Generate the URL for the mask
-    image_url = f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
+    mask_url = f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
 
     # Run the replicate logic with the generated mask URL
     output = replicate.run(
         "schananas/grounded_sam:ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
         input={
-            "image": image_url,
+            "image": mask_url,
             "mask_prompt": mask_prompt,
             "adjustment_factor": -25,  # Assuming you want to set an adjustment factor
             "negative_mask_prompt": negative_mask_prompt,  # Use the provided negative_mask_prompt
@@ -255,54 +280,10 @@ async def generate_mask(
     )
 
     # Find the inverted mask URL in the output
-    mask_url = next((image for image in output if "mask" in image), None)
+    inverted_mask_url = next((image for image in output if "inverted_mask" in image), None)
 
-    if mask_url is None:
+    if inverted_mask_url is None:
         raise HTTPException(status_code=500, detail="Inverted mask not found in the replicate output.")
 
-    return {"mask_url": mask_url}
-
-
-
-@router.post("/inpainting")
-async def inpainting(
-    mask_prompt: str = Form(...),
-    mask_url: str = Form(...),
-    negative_mask_prompt: str = Form(...),
-    image_file: UploadFile = File(...),
-
-):
-    # Assuming you want to save the uploaded image to S3
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    output_file_path = f"mask_{timestamp}.png"
-
-    # Read the content of the uploaded file
-    decoded_content = await image_file.read()
-
-    # Save the content to S3
-    s3_path = f"{bucket_name}/{output_file_path}"
-    with fs.open(s3_path, "wb") as f:
-        f.write(decoded_content)
-
-    # Generate the URL for the mask
-    image_url = f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
-
-    # Run the replicate logic with the generated mask URL
-    output = replicate.run(
-    "subscriptions10x/sdxl-inpainting:733bba9bba10b10225a23aae8d62a6d9752f3e89471c2650ec61e50c8c69fb23",
-    input={
-        "image": image_url,
-        "prompt": mask_prompt,
-        "n_prompt": negative_mask_prompt,
-        "mask_image": mask_url
-    }
-    )
-
-    # Find the inverted mask URL in the output
-    inpainting_url = output[0]
-
-    if inpainting_url is None:
-        raise HTTPException(status_code=500, detail="Inverted mask not found in the replicate output.")
-
-    return {"inpainting_url": inpainting_url}
+    return {"inverted_mask_url": inverted_mask_url}
 

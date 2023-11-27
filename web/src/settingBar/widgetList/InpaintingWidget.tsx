@@ -5,27 +5,28 @@ import { Node, NodeConfig } from "konva/lib/Node";
 import { WidgetKind } from "../Widget";
 import { SettingBarProps } from "..";
 import useItem from "../../hook/useItem";
+import { useDispatch } from "react-redux";
+import { stageDataAction } from "../../redux/currentStageData";
 
-export type Image2ImageKind = {
+export type InpaintingKind = {
   "data-item-type": string;
   id: string;
   icon: string;
   selectedItems: Node<NodeConfig>[];
 };
 
-type Image2ImageWidgetProps = {
+type InpaintingWidgetProps = {
   data: WidgetKind & SettingBarProps
 };
 
-const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
+const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
   const [textPrompt, setTextPrompt] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { updateItem } = useItem();
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTextPrompt(e.target.value);
   };
-
+  const dispatch = useDispatch();
   const generateImagefromImage = async () => {
     setIsLoading(true);
     setError(null);
@@ -47,7 +48,7 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
         formData.append("image_file", blob, "image.png");
       }
   
-      const response = await fetch("http://0.0.0.0/generate_image_from_file", {
+      const response = await fetch("http://0.0.0.0/inpainting", {
         method: "POST",
         body: formData,
       });
@@ -69,9 +70,14 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
           newImage.onload = () => {
             selectedImageItem.image(newImage);
             selectedImageItem.getLayer()?.batchDraw();
-            updateItem(selectedImageItem.id(), () => ({ ...selectedImageItem.attrs, image: newImage }));
-          };
-          newImage.src = api_response.image_url;
+            console.log(selectedImageItem.id());
+            dispatch(stageDataAction.updateItem({
+              id: selectedImageItem.id(),
+              attrs: { ...selectedImageItem.attrs, image: newImage,src: api_response.image_url },
+              className: selectedImageItem.className,
+            }));                  
+          };    
+          newImage.src = api_response.image_url;     
         }
       }
     } catch (error: any) {
@@ -106,4 +112,4 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
   );
 };
 
-export default Image2ImageWidget;
+export default InpaintingWidget;

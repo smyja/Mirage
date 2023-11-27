@@ -15,8 +15,9 @@ import ShapeWidget from "./widgetList/ShapeWidget";
 import IconWidget from "./widgetList/IconWidget";
 import LineWidget from "./widgetList/LineWidget";
 import GenCopyWidget from "./widgetList/GenCopyWidget";
-import Image2ImageWidget from "./widgetList/ImageToImage";
-import MaskImageWidget from "./widgetList/MaskImage";
+import Image2ImageWidget from "./widgetList/ImageToImageWidget";
+import MaskImageWidget from "./widgetList/MaskImageWidget";
+import InpaintingWidget from "./widgetList/InpaintingWidget";
 
 export type SettingBarProps = {
   selectedItems: Node<NodeConfig>[];
@@ -35,6 +36,7 @@ const Widgets = {
   gencopy: (data: WidgetKind & SettingBarProps) => <GenCopyWidget data={data}/>,
   image2image: (data: WidgetKind & SettingBarProps) => <Image2ImageWidget data={data}/>,
   maskimage: (data: WidgetKind & SettingBarProps) => <MaskImageWidget data={data}/>,
+  inpainting: (data: WidgetKind & SettingBarProps) => <InpaintingWidget data={data}/>,
   icon: (data: WidgetKind & SettingBarProps) => <IconWidget />,
   export: (data: WidgetKind & SettingBarProps) => <ExportWidget data={data} />,
 };
