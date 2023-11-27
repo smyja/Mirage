@@ -32,10 +32,7 @@
     "id": "maskimage",
     "name": "Mask Image"
   },
-  {
-    "id": "icon",
-    "name": "Icon"
-  },
+
   {
     "id": "export",
     "name": "Export"

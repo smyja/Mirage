@@ -292,15 +292,7 @@
     "id": "inpainting",
     "name": "Inpainting"
   },
-  "icon": {
-    "id": "icon",
-    "name": "Icon",
-    "search": {
-      "title": "Search Icon",
-      "placeholder": "Enter keyword",
-      "desc": "Type a keyword to find icon"
-    }
-  },
+
   "export": {
     "id": "export",
     "name": "Export",

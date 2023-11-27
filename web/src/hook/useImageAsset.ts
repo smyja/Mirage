@@ -9,7 +9,8 @@ const useImageAsset = () => {
   const imageAssetList = useSelector(imageAssetListSelector.selectAll);
 
   const setImageAsset = async (imageList: { [key: string]: any }[]) => {
-    imageList.map((image) =>
+    imageList.map((image) => {
+      console.log(image.src); // Log the image.src
       dispatch(
         imageAssetListAction.addItem({
           type: image["data-item-type"],
@@ -17,8 +18,8 @@ const useImageAsset = () => {
           name: image.name,
           src: image.src,
         }),
-      ),
-    );
+      );
+    });
   };
 
   const getAllImageAsset = (): { [key: string]: any }[] => {

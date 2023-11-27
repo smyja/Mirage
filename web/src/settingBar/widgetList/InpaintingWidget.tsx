@@ -21,10 +21,14 @@ type InpaintingWidgetProps = {
 
 const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
   const [textPrompt, setTextPrompt] = useState<string>("");
+  const [negativePrompt,setNegativePrompt]= useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTextPrompt(e.target.value);
+  };
+  const handleNegativePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNegativePrompt(e.target.value);
   };
   const dispatch = useDispatch();
   const generateImagefromImage = async () => {
@@ -32,52 +36,55 @@ const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
     setError(null);
     try {
       const formData = new FormData();
-      formData.append("prompt", textPrompt);
-  
-      // Get the selected image
-      const selectedImageItem = data.selectedItems.find(
+      formData.append("mask_prompt", textPrompt);
+      formData.append("negative_mask_prompt", negativePrompt);
+
+      // Get the selected images
+      const selectedImages = data.selectedItems.filter(
         (item: Node<NodeConfig>) => item.attrs["data-item-type"] === "image"
-      ) as Konva.Image;
-  
-      if (selectedImageItem && selectedImageItem.image()) {
-        const imageElement = selectedImageItem.image() as HTMLImageElement;
-        const response = await fetch(imageElement.src);
-        const blob = await response.blob();
-  
-        // Append the Blob to the FormData
-        formData.append("image_file", blob, "image.png");
+      ) as Konva.Image[];
+
+      for (const selectedImage of selectedImages) {
+        const imageElement = selectedImage.image() as HTMLImageElement;
+        const src = imageElement.src;
+
+        if (src.startsWith("data:image")) {
+          // If the src is a base64 data URL, convert it to a blob
+          const response = await fetch(src);
+          const blob = await response.blob();
+          formData.append("image_file", blob, "image.png");
+        } else {
+          // If the src is an external URL, append it as a string
+          formData.append("mask_url", src);
+        }
       }
-  
+
       const response = await fetch("http://0.0.0.0/inpainting", {
         method: "POST",
         body: formData,
       });
-  
+
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-  
+
       const api_response = await response.json();
       console.log(api_response.image_url);
       if (api_response && data.selectedItems) {
-        // Update the selected image with the new image from the API response
-        const selectedImageItem = data.selectedItems.find(
-          (item: Node<NodeConfig>) => item.attrs["data-item-type"] === "image"
-        ) as Konva.Image;
-  
-        if (selectedImageItem) {
+        // Update the selected images with the new image from the API response
+        for (const selectedImage of selectedImages) {
           const newImage = new Image();
           newImage.onload = () => {
-            selectedImageItem.image(newImage);
-            selectedImageItem.getLayer()?.batchDraw();
-            console.log(selectedImageItem.id());
+            selectedImage.image(newImage);
+            selectedImage.getLayer()?.batchDraw();
+            console.log(selectedImage.id());
             dispatch(stageDataAction.updateItem({
-              id: selectedImageItem.id(),
-              attrs: { ...selectedImageItem.attrs, image: newImage,src: api_response.image_url },
-              className: selectedImageItem.className,
-            }));                  
-          };    
-          newImage.src = api_response.image_url;     
+              id: selectedImage.id(),
+              attrs: { ...selectedImage.attrs, image: newImage, src: api_response.image_url },
+              className: selectedImage.className,
+            }));
+          };
+          newImage.src = api_response.image_url;
         }
       }
     } catch (error: any) {
@@ -87,6 +94,7 @@ const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
       setIsLoading(false);
     }
   };
+
   return (
     <Form>
       <Form.Group controlId="textPrompt">
@@ -97,6 +105,13 @@ const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
           onChange={handleTextChange}
           style={{ marginBottom: 10 }}
         />
+        <Form.Control
+          type="text"
+          placeholder="Enter negative prompt"
+          value={negativePrompt}
+          onChange={handleNegativePromptChange}
+          style={{ marginBottom: 10 }}
+        />        
       </Form.Group>
       <Button
         variant="primary"
