@@ -1,6 +1,6 @@
 from fastapi import HTTPException,APIRouter,File, UploadFile, Form
 from fastapi.responses import FileResponse
-from typing import Dict
+from typing import Dict,Optional
 import base64
 import os
 import s3fs
@@ -33,37 +33,6 @@ if api_key is None:
 
 
 
-def resize_images(binary_data_list):
-    resized_images = []
-
-    for binary_data in binary_data_list:
-        # Create a PIL Image object from the binary data
-        image = Image.open(io.BytesIO(binary_data))
-
-        # Convert image to RGB if it's not
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-
-        # Define the allowed dimensions
-        allowed_dimensions = [(1024, 1024), (1152, 896), (1216, 832), (1344, 768), (1536, 640),
-                               (640, 1536), (768, 1344), (832, 1216), (896, 1152)]
-
-        # Check if the image dimensions are allowed, resize if needed
-        if (image.width, image.height) not in allowed_dimensions:
-            new_dimensions = allowed_dimensions[0]  # Choose the first allowed dimensions
-            image = image.resize(new_dimensions)
-
-        # Save the resized image to binary data
-        buffered = io.BytesIO()
-        image.save(buffered, format="JPEG")
-        binary_data_resized = buffered.getvalue()
-
-        resized_images.append(binary_data_resized)
-
-    return resized_images
-
-
-
 def save_image_from_file(binary_data, prompt):
 
     data = {
@@ -91,49 +60,6 @@ def save_image_from_file(binary_data, prompt):
         headers=headers
     )
     print(response)
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=f"Failed to fetch image. Status code: {response.status_code}")
-
-    decoded_content = base64.b64decode(response.json()['artifacts'][0]['base64'])
-
-    cleaned_prompt = prompt.replace(" ", "_")
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    output_file_path = f"{cleaned_prompt}_{timestamp}.png"
-
-    s3_path = f"{bucket_name}/{output_file_path}"
-
-    with fs.open(s3_path, "wb") as f:
-        f.write(decoded_content)
-
-    return f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
-
-
-def save_inpainting_from_file(binary_data,binary_data2, prompt):
-
-    data = {
-        "mask_source": "MASK_IMAGE_WHITE",
-        "text_prompts[0][text]": prompt,
-        "cfg_scale": 7,
-        "clip_guidance_preset": "FAST_BLUE",
-        "samples": 1,
-        "steps": 30,
-    }
-
-    files = {
-        'init_image': (None, binary_data, 'image/jpeg'),
-        'mask_image': (None, binary_data2, 'image/jpeg'),
-    }
-
-    headers = {'Authorization': f'Bearer {api_key}'}
-
-    response = requests.post(
-        f'{api_host}/v1/generation/{image_engine_id}/image-to-image/masking',
-        files=files,
-        data=data,
-        headers=headers
-    )
-    print(response.text)
 
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=f"Failed to fetch image. Status code: {response.status_code}")
@@ -263,39 +189,46 @@ async def generate_mask(
     return {"mask_url": mask_url}
 
 
-
 @router.post("/inpainting")
 async def inpainting(
     mask_prompt: str = Form(...),
     mask_url: str = Form(...),
     negative_mask_prompt: str = Form(...),
-    image_file: UploadFile = File(...),
-
+    image_file: Optional[UploadFile] = File(None),
+    image_link: Optional[str] = Form(None)
 ):
-    # Assuming you want to save the uploaded image to S3
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    output_file_path = f"mask_{timestamp}.png"
+    # Check if both or none of the image inputs are provided
+    if (image_file is None and image_link is None) or (image_file is not None and image_link is not None):
+        raise HTTPException(status_code=400, detail="Either image_file or image_link must be provided.")
 
-    # Read the content of the uploaded file
-    decoded_content = await image_file.read()
+    # If image_file is provided, save it to S3 and generate the URL
+    if image_file is not None:
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        output_file_path = f"mask_{timestamp}.png"
 
-    # Save the content to S3
-    s3_path = f"{bucket_name}/{output_file_path}"
-    with fs.open(s3_path, "wb") as f:
-        f.write(decoded_content)
+        # Read the content of the uploaded file
+        decoded_content = await image_file.read()
 
-    # Generate the URL for the mask
-    image_url = f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
+        # Save the content to S3
+        s3_path = f"{bucket_name}/{output_file_path}"
+        with fs.open(s3_path, "wb") as f:
+            f.write(decoded_content)
+
+        # Generate the URL for the mask
+        image_url = f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
+    else:
+        # If image_link is provided, use it as image_url
+        image_url = image_link
 
     # Run the replicate logic with the generated mask URL
     output = replicate.run(
-    "subscriptions10x/sdxl-inpainting:733bba9bba10b10225a23aae8d62a6d9752f3e89471c2650ec61e50c8c69fb23",
-    input={
-        "image": image_url,
-        "prompt": mask_prompt,
-        "n_prompt": negative_mask_prompt,
-        "mask_image": mask_url
-    }
+        "subscriptions10x/sdxl-inpainting:733bba9bba10b10225a23aae8d62a6d9752f3e89471c2650ec61e50c8c69fb23",
+        input={
+            "image": image_url,
+            "prompt": mask_prompt,
+            "n_prompt": negative_mask_prompt,
+            "mask_image": mask_url
+        }
     )
 
     # Find the inverted mask URL in the output
@@ -305,4 +238,3 @@ async def inpainting(
         raise HTTPException(status_code=500, detail="Inverted mask not found in the replicate output.")
 
     return {"inpainting_url": inpainting_url}
-
