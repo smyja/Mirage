@@ -7,7 +7,7 @@ ENV NODE_ENV=production
 WORKDIR /usr/app
 COPY ./ /usr/app
 COPY web/package*.json ./
-
+RUN npm install
 
 # Copy the built application files
 
