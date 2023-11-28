@@ -2,8 +2,8 @@
   "schemaVersion": 2,
   "dockerfileLines": [
                         "FROM node:16-alpine",
-                        "RUN mkdir -p /usr/src/app",
-                        "COPY ./web /usr/src/app",
+                        "WORKDIR /usr/app",
+                        "COPY . /usr/src/app",
                         "RUN npm install",
                         "CMD [ \"npm\", \"start\" ]"
                     ]
