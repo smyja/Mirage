@@ -1,10 +1,4 @@
- {
-  "schemaVersion": 2,
-  "dockerfileLines": [
-                        "FROM node:16-alpine",
-                        "WORKDIR /usr/app",
-                        "COPY . /usr/src/app",
-                        "RUN npm install",
-                        "CMD [ \"npm\", \"start\" ]"
-                    ]
- }
+{
+    "schemaVersion": 2,
+    "dockerfilePath": "./Dockerfile"
+}
