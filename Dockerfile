@@ -14,7 +14,7 @@ RUN npm install
 
 COPY ./web/public ./public
 
-COPY ./node_modules ./node_modules
+
 # Expose the desired port (e.g., 3000)
 
 EXPOSE 3000
