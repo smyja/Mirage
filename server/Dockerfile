@@ -17,11 +17,11 @@ RUN apt-get update \
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-COPY ./requirements.txt /requirements.txt
+COPY .server/requirements.txt /requirements.txt
 RUN pip install --no-cache-dir -r /requirements.txt \
     && rm -rf /requirements.txt
 
-COPY . /usr/src/app
+COPY ./server /usr/src/app
 
 EXPOSE 80
 ARG SECRET_KEY
