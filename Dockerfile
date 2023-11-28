@@ -6,7 +6,7 @@ ENV NODE_ENV=production
 # Copy package.json and package-lock.json (if available)
 WORKDIR /usr/app
 COPY ./ /usr/app
-COPY package*.json ./
+COPY web/package*.json ./
 
 
 # Copy the built application files
