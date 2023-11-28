@@ -79,13 +79,13 @@ const MaskImageWidget: React.FC<MaskImageWidgetProps> = ({ data }) => {
             console.log(selectedImageItem.id());
             dispatch(stageDataAction.updateItem({
               id: selectedImageItem.id(),
-              attrs: { ...selectedImageItem.attrs, image: newImage,src: api_response.image_url },
+              attrs: { ...selectedImageItem.attrs, image: newImage,src: api_response.mask_url },
               className: selectedImageItem.className,
             })); 
                
           };
   
-          newImage.src = api_response.image_url;     
+          newImage.src = api_response.mask_url;     
         }
       }
     } catch (error: any) {

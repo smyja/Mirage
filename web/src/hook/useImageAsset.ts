@@ -10,7 +10,6 @@ const useImageAsset = () => {
 
   const setImageAsset = async (imageList: { [key: string]: any }[]) => {
     imageList.map((image) => {
-      console.log(image.src); // Log the image.src
       dispatch(
         imageAssetListAction.addItem({
           type: image["data-item-type"],

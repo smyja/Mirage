@@ -1,5 +1,4 @@
 from fastapi import HTTPException,APIRouter,File, UploadFile, Form
-from fastapi.responses import FileResponse
 from typing import Dict,Optional
 import base64
 import os
@@ -10,7 +9,6 @@ from datetime import datetime
 import io
 from PIL import Image
 import replicate
-from torchvision.transforms import GaussianBlur
 import requests
 from io import BytesIO
 
@@ -30,6 +28,37 @@ bucket_name = os.getenv('S3_BUCKET_NAME')
 fs = s3fs.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key, s3_additional_kwargs={"ACL": "public-read"},endpoint_url="https://chatwidget.nyc3.digitaloceanspaces.com",)
 if api_key is None:
     raise Exception("Missing Stability API key.")
+
+
+
+def resize_images(binary_data_list):
+    resized_images = []
+
+    for binary_data in binary_data_list:
+        # Create a PIL Image object from the binary data
+        image = Image.open(io.BytesIO(binary_data))
+
+        # Convert image to RGB if it's not
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
+        # Define the allowed dimensions
+        allowed_dimensions = [(1024, 1024), (1152, 896), (1216, 832), (1344, 768), (1536, 640),
+                               (640, 1536), (768, 1344), (832, 1216), (896, 1152)]
+
+        # Check if the image dimensions are allowed, resize if needed
+        if (image.width, image.height) not in allowed_dimensions:
+            new_dimensions = allowed_dimensions[0]  # Choose the first allowed dimensions
+            image = image.resize(new_dimensions)
+
+        # Save the resized image to binary data
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        binary_data_resized = buffered.getvalue()
+
+        resized_images.append(binary_data_resized)
+
+    return resized_images
 
 
 
@@ -170,7 +199,7 @@ async def generate_mask(
     image_url = f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
 
     # Run the replicate logic with the generated mask URL
-    output = replicate.run(
+    output = await replicate.async_run(
         "schananas/grounded_sam:ee871c19efb1941f55f66a3d7d960428c8a5afcb77449547fe8e5a3ab9ebc21c",
         input={
             "image": image_url,
@@ -181,10 +210,10 @@ async def generate_mask(
     )
 
     # Find the inverted mask URL in the output
-    mask_url = next((image for image in output if "mask" in image), None)
-
+    mask_url = next((image for image in output if image.endswith("/mask.jpg")), None)
+    print(mask_url)
     if mask_url is None:
-        raise HTTPException(status_code=500, detail="Inverted mask not found in the replicate output.")
+        raise HTTPException(status_code=500, detail="mask not found in the replicate output.")
 
     return {"mask_url": mask_url}
 
@@ -198,13 +227,19 @@ async def inpainting(
     image_link: Optional[str] = Form(None)
 ):
     # Check if both or none of the image inputs are provided
-    if (image_file is None and image_link is None) or (image_file is not None and image_link is not None):
-        raise HTTPException(status_code=400, detail="Either image_file or image_link must be provided.")
+    if image_file is None and image_link is None:   
+        print(f"mask_prompt present: {mask_prompt is not None}")
+        print(f"mask_url present: {mask_url is not None}",mask_url)
+        print(f"negative_mask_prompt present: {negative_mask_prompt is not None}")
+        print(f"image_file present: {image_file is not None}")
+        print(f"image_link present: {image_link is not None}",image_link)
 
+        raise HTTPException(status_code=400, detail="Either image_file or image_link must be provided.")
+    print("started")
     # If image_file is provided, save it to S3 and generate the URL
     if image_file is not None:
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        output_file_path = f"mask_{timestamp}.png"
+        output_file_path = f"imagge_{timestamp}.png"
 
         # Read the content of the uploaded file
         decoded_content = await image_file.read()
@@ -216,12 +251,13 @@ async def inpainting(
 
         # Generate the URL for the mask
         image_url = f"https://{bucket_name}.nyc3.cdn.digitaloceanspaces.com/{bucket_name}/{output_file_path}"
+        print(image_url)
     else:
         # If image_link is provided, use it as image_url
         image_url = image_link
 
     # Run the replicate logic with the generated mask URL
-    output = replicate.run(
+    output = await replicate.async_run(
         "subscriptions10x/sdxl-inpainting:733bba9bba10b10225a23aae8d62a6d9752f3e89471c2650ec61e50c8c69fb23",
         input={
             "image": image_url,
