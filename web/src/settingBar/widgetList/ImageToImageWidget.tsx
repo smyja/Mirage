@@ -49,7 +49,7 @@ const Image2ImageWidget: React.FC<Image2ImageWidgetProps> = ({ data }) => {
         formData.append("image_file", blob, "image.png");
       }
   
-      const response = await fetch("http://0.0.0.0/generate_image_from_file", {
+      const response = await fetch("https://mirage.mirage.humanise.app/generate_image_from_file", {
         method: "POST",
         body: formData,
       });

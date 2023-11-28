@@ -68,7 +68,7 @@ const ImageWidget: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://0.0.0.0:80/generate_image", {
+      const response = await fetch("https://mirage.mirage.humanise.app/generate_image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

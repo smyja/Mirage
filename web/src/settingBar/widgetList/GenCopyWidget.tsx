@@ -29,7 +29,7 @@ const GenCopyWidget: React.FC<GenCopyWidgetProps> = ({ data }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://0.0.0.0/create_copy", {
+      const response = await fetch("https://mirage.mirage.humanise.app/create_copy", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

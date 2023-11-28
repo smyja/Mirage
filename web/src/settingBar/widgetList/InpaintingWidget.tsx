@@ -82,7 +82,7 @@ const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
         formData.append("image_link", imageLink);
       }
 
-      const response = await fetch("http://0.0.0.0/inpainting", {
+      const response = await fetch("https://mirage.mirage.humanise.app/inpainting", {
         method: "POST",
         body: formData,
       });

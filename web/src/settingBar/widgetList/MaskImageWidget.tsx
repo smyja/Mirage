@@ -54,7 +54,7 @@ const MaskImageWidget: React.FC<MaskImageWidgetProps> = ({ data }) => {
         formData.append("image_file", blob, "image.png");
       }
   
-      const response = await fetch("http://0.0.0.0/generate_mask", {
+      const response = await fetch("https://mirage.mirage.humanise.appgenerate_mask", {
         method: "POST",
         body: formData,
       });
