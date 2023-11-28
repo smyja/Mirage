@@ -14,7 +14,7 @@ RUN npm install
 
 COPY ./web/public ./public
 COPY ./web/src ./src
-
+COPY ./web/tsconfig.json ./
 # Expose the desired port (e.g., 3000)
 
 EXPOSE 3000
