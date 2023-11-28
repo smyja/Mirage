@@ -4,7 +4,7 @@
                         "FROM node:16-alpine",
                         "RUN mkdir -p /usr/src/app",
                         "COPY ./web /usr/src/app",
-                        "RUN npm install && npm cache clean --force",
+                        "RUN npm install",
                         "CMD [ \"npm\", \"start\" ]"
                     ]
  }
