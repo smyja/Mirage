@@ -1,4 +1,4 @@
-import React, { useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button } from "react-bootstrap";
 import Konva from "konva";
 import { Node, NodeConfig } from "konva/lib/Node";
@@ -21,7 +21,7 @@ type InpaintingWidgetProps = {
 
 const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
   const [textPrompt, setTextPrompt] = useState<string>("");
-  const [negativePrompt,setNegativePrompt]= useState<string>("");
+  const [negativePrompt, setNegativePrompt] = useState<string>("");
   const [maskUrl, setMaskUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<Blob | null>(null);
   const [imageLink, setImageLink] = useState<string | null>(null);
@@ -48,29 +48,55 @@ const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
         (item: Node<NodeConfig>) => item.attrs["data-item-type"] === "image"
       ) as Konva.Image[];
       console.log(selectedImages);
-      
-      for (const selectedImage of selectedImages) {
-        const imageElement = selectedImage.image() as HTMLImageElement;
-        const src = imageElement.src;
-      
-        if (src.includes("mask") && !maskUrl) {
+
+
+
+      if (selectedImages.length >= 2) {
+
+        const firstImageElement = selectedImages[0].image() as HTMLImageElement;
+        const secondImageElement = selectedImages[1].image() as HTMLImageElement;
+
+        const firstSrc = firstImageElement.src;
+        console.log(firstSrc);
+        const secondSrc = secondImageElement.src;
+        console.log(secondSrc);
+        // Check for mask URL
+        if (firstSrc.includes("replicate")) {
           console.log("set mask url");
-          setMaskUrl(src);
-        } else if (!imageFile && !imageLink && !src.includes("replicate") && !src.includes("mask")) {
-          if (src.startsWith("data:image")) {
-            console.log("present");
-            // If the src is a base64 data URL, convert it to a blob
-            const response = await fetch(src);
-            const blob = await response.blob();
-            setImageFile(blob);
-          } else {
-            console.log("presental");
-            // If the src is an external URL, set it as imageLink
-            setImageLink(src);
-          }
+          setMaskUrl(firstSrc);
+        } else if (secondSrc.includes("replicate")) {
+          console.log("set mask url");
+          setMaskUrl(secondSrc);
+        }
+
+        // Check for imageFile
+        if (firstSrc.startsWith("data:image")) {
+          console.log("present");
+          // If the src is a base64 data URL, convert it to a blob
+          const response = await fetch(firstSrc);
+          const blob = await response.blob();
+          setImageFile(blob);
+        } else if (secondSrc.startsWith("data:image")) {
+          console.log("present");
+          // If the src is a base64 data URL, convert it to a blob
+          const response = await fetch(secondSrc);
+          const blob = await response.blob();
+          setImageFile(blob);
+        }
+
+        // Check for imageLink
+        if (!firstSrc.startsWith("data:image") && !firstSrc.includes("replicate")) {
+          console.log("presental");
+          // If the src is an external URL, set it as imageLink
+          setImageLink(firstSrc);
+        } else if (!secondSrc.startsWith("data:image") && !secondSrc.includes("replicate")) {
+          console.log("presental");
+          // If the src is an external URL, set it as imageLink
+          setImageLink(secondSrc);
         }
       }
-      
+
+
       // Append to formData after the loop
       if (maskUrl) {
         formData.append("mask_url", maskUrl);
@@ -95,24 +121,46 @@ const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
       console.log(api_response.inpainting_url);
       if (api_response && data.selectedItems) {
         // Update the selected images with the new image from the API response
+        // Update the selected images with the new image from the API response
+        let firstImageElement: HTMLImageElement | undefined;
+        let secondImageElement: HTMLImageElement | undefined;
+
+        if (selectedImages.length >= 2) {
+          firstImageElement = selectedImages[0].image() as HTMLImageElement;
+          secondImageElement = selectedImages[1].image() as HTMLImageElement;
+          // rest of your code inside the if block
+        }
         for (const selectedImage of selectedImages) {
-          const imageElement = selectedImage.image() as HTMLImageElement;
-          const src = imageElement.src;
-      
-          // Check if "mask" is in the src of the selectedImage
-          if (src.includes("mask")) {
-            const newImage = new Image();
-            newImage.onload = () => {
-              selectedImage.image(newImage);
-              selectedImage.getLayer()?.batchDraw();
-              console.log(selectedImage.id());
-              dispatch(stageDataAction.updateItem({
-                id: selectedImage.id(),
-                attrs: { ...selectedImage.attrs, image: newImage, src: api_response.inpainting_url },
-                className: selectedImage.className,
-              }));
-            };
-            newImage.src = api_response.inpainting_url;
+          let imageElement: HTMLImageElement | undefined;
+        
+          // Check if the selectedImage is one of the first or second image elements
+          if (selectedImage.image() === firstImageElement) {
+            imageElement = firstImageElement;
+          } else if (selectedImage.image() === secondImageElement) {
+            imageElement = secondImageElement;
+          }
+        
+          if (imageElement) {
+            const src = imageElement.src;
+        
+            // Check if "mask" is in the src of the selectedImage
+            if (src.includes("mask")) {
+              const newImage = new Image();
+              newImage.onload = () => {
+                selectedImage.image(newImage);
+                selectedImage.getLayer()?.batchDraw();
+                console.log(selectedImage.id());
+                dispatch(stageDataAction.updateItem({
+                  id: selectedImage.id(),
+                  attrs: { ...selectedImage.attrs, image: newImage, src: api_response.inpainting_url },
+                  className: selectedImage.className,
+                }));
+              };
+              newImage.src = api_response.inpainting_url;
+        
+              // Break out of the loop after updating the image
+              break;
+            }
           }
         }
       }
@@ -140,7 +188,7 @@ const InpaintingWidget: React.FC<InpaintingWidgetProps> = ({ data }) => {
           value={negativePrompt}
           onChange={handleNegativePromptChange}
           style={{ marginBottom: 10 }}
-        />        
+        />
       </Form.Group>
       <Button
         variant="primary"
