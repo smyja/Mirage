@@ -12,7 +12,7 @@ COPY web/package*.json ./
 # Copy the built application files
 
 
-COPY ./public ./public
+COPY ./web/public ./public
 
 COPY ./node_modules ./node_modules
 # Expose the desired port (e.g., 3000)
