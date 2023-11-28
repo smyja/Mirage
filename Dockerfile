@@ -13,7 +13,7 @@ RUN npm install
 
 
 COPY ./web/public ./public
-
+COPY ./web/src ./src
 
 # Expose the desired port (e.g., 3000)
 
