@@ -8,7 +8,8 @@ Mirage is a browser-based interface design tool that is powered by Stability-AI 
 - Support deployment both locally and in the cloud.
 - Fully based on open source and can be used for commercial purposes.
 - Mask prompting based on Grounding DINO & Segment Anything.
-- 
+- Image Generation with Stability API
+- Image to Image
 
 
 ## 📦 Install
@@ -26,4 +27,7 @@ npm start # web
 ```
 
 ## 🔗 Built with
-Fixie
+- Stabilty AI
+- Fixie
+- FastAPI
+- React
