@@ -12,7 +12,7 @@ Mirage is a browser-based interface design tool that is powered by Stability-AI 
 - Image to Image
 
 ### Inpainting
-To change an object in an Image, Grounded dino and Segment anything is used to segment and mask the object. Specify the object you want and the object you dont want and mask. Once you are done with masking, select both items and specify what you want to replace ypur mask. 
+To change an object in an Image, Grounded dino and Segment anything is used to segment and mask the object. Specify the object you want and the object you dont want and mask. Once you are done with masking, select both items and specify what you want to replace your masked image with. 
 ![preview](images/segment.png)
 ## 
 ![preview](images/inpainting.png)
