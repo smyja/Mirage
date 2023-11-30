@@ -28,6 +28,12 @@ Once you have changed directory,install the packages
 npm install # web
 
 ```
+Start the server
+
+```bash
+npm run start # web
+
+```
 
 ## ⌨️ Server setup
 
