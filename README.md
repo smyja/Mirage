@@ -1,5 +1,6 @@
 # Mirage 
 Mirage is a browser-based interface design tool that is powered by Stability-AI and Fixie for generating images and texts.
+Try out a [Demo](https://frontend.mirage.humanise.app/)
 
 ![preview](images/gentext.png)
 ## ✨ Features
