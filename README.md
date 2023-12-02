@@ -2,6 +2,8 @@
 Mirage is a browser-based interface design tool that is powered by Stability-AI and Fixie for generating images and texts.
 Try out a [Demo](https://frontend.mirage.humanise.app/)
 
+You can [Watch the loom demo](https://www.loom.com/share/d3d65cc1799b4322b572857fac6c0970?sid=a701975c-a8c0-4ff2-985d-135469fbdeba)
+
 ![preview](images/gentext.png)
 ## ✨ Features
 
