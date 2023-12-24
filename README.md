@@ -58,3 +58,7 @@ bash runserver.sh
 - Fixie
 - FastAPI
 - React
+
+## Acknowledgement
+
+[React Image Editor](https://github.com/swimmingkiim/react-image-editor): the codebase I built upon.
